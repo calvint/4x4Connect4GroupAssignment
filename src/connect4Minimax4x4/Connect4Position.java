@@ -137,47 +137,56 @@ public class Connect4Position implements InterfacePosition {
                 spotColors[iC][iR] = getColor(iC, iR, columnChipCounts[iC]);
             }
         }
-        
-        // go through vertical wins
-        for (int iC=0; iC < nC; iC++) {
-            if (columnChipCounts[iC] < 4) continue;
-            for (int iR = columnChipCounts[iC]-1; iR >= 3; iR-- ) {
-                if (spotColors[iC][iR] == 0) continue;
-                if (spotColors[iC][iR] == spotColors[iC][iR-1] &&
-                    spotColors[iC][iR-1] == spotColors[iC][iR-2] &&
-                    spotColors[iC][iR-2] == spotColors[iC][iR-3]) {
-                    return spotColors[iC][iR];
-                }
-            }
-        }
-        
-        // go through horizontal wins
-        for (int iR=0; iR < nR; iR++) {
-            for (int iC = 0; iC <= nC - 4; iC++ ) {
-                if (spotColors[iC][iR] == 0) continue;
-                if (spotColors[iC][iR] == spotColors[iC+1][iR] &&
-                    spotColors[iC+1][iR] == spotColors[iC+2][iR] &&
-                    spotColors[iC+2][iR] == spotColors[iC+3][iR]) {
-                    return spotColors[iC][iR];
-                }
-            }
-        }
-        
-        // check diagonals
-        // hard coded for 4x4 case
-        if (spotColors[0][0] != 0) {
-            if (spotColors[0][0] == spotColors[1][1]
-                && spotColors[1][1] == spotColors[2][2]
-                && spotColors[2][2] == spotColors[3][3]) {
-                return spotColors[0][0];
-            }
-        }
-        if (spotColors[0][3] != 0) {
-            if (spotColors[0][3] == spotColors[1][2]
-                && spotColors[1][2] == spotColors[2][1]
-                && spotColors[2][1] == spotColors[3][0]) {
-                return spotColors[0][3];
-            }
+
+		//referencing each 4X4 piece of the board
+        for (int i = 0; i < nR - 3; i++) {
+        	for (int j = 0; j < nC - 3; j++) {
+        		//if the bottom two corners are not empty
+        		if (spotColors[i][j] != 0 & spotColors[i][j+3] != 0) {
+        			//check the bottom horizontal
+        			if (spotColors[i][j] == spotColors[i][j+1] &&
+    	                    spotColors[i][j] == spotColors[i][j+2] &&
+    	                    spotColors[i][j] == spotColors[i][j+3]) {
+    	                    return spotColors[i][j];
+    	            }
+	        		//if the top left is not empty:
+	        		if (spotColors[i+3][j] != 0) {
+	        			//check vertical on left side
+	    				if (spotColors[i+3][j] == spotColors[i+2][j] &&
+	    	                    spotColors[i+3][j] == spotColors[i+1][j] &&
+	    	                    spotColors[i+3][j] == spotColors[i][j]) {
+	    	                    return spotColors[i+3][j];
+	    	            }
+	    				//check the diagonal from top left to bottom right
+	    				if (spotColors[i+3][j] == spotColors[i+2][j+1] &&
+	    	                    spotColors[i+3][j] == spotColors[i+1][j+2] &&
+	    	                    spotColors[i+3][j] == spotColors[i][j+3]) {
+	    	                    return spotColors[i+3][j];
+	    	            }
+	        			//if the top right is not empty
+	        			if (spotColors[i+3][j+3] != 0) {
+	        				//check top horizontal
+	        				if (spotColors[i+3][j] == spotColors[i+3][j+1] &&
+	        	                    spotColors[i+3][j] == spotColors[i+3][j+2] &&
+	        	                    spotColors[i+3][j] == spotColors[i+3][j+3]) {
+	        	                    return spotColors[i+3][j];
+	        	            }
+	        				//check the vertical on the right side
+	        				if (spotColors[i+3][j+3] == spotColors[i+2][j+3] &&
+	        	                    spotColors[i+3][j+3] == spotColors[i+1][j+3] &&
+	        	                    spotColors[i+3][j+3] == spotColors[i][j+3]) {
+	        	                    return spotColors[i+3][j+3];
+	        	            }
+	        				//check the diagonal from the bottom left to the top right
+	        				if (spotColors[i][j] == spotColors[i+1][j+1] &&
+	        	                    spotColors[i][j] == spotColors[i+2][j+2] &&
+	        	                    spotColors[i][j] == spotColors[i+3][j+3]) {
+	        	                    return spotColors[i][j];
+	        	            }
+	        			}
+	        		}
+        		}
+        	}
         }
         
         // If we got this far, nobody has won. Therefore if the whole board is filled,
