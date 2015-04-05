@@ -139,8 +139,8 @@ public class Connect4Position implements InterfacePosition {
         }
 
 		//referencing each 4X4 piece of the board
-        for (int i = 0; i < nR - 3; i++) {
-        	for (int j = 0; j < nC - 3; j++) {
+        for (int j = 0; j < nR - 3; j++) {
+        	for (int i = 0; i < nC - 3; i++) {
         		//if the bottom two corners are not empty
         		if (spotColors[i][j] != 0 & spotColors[i][j+3] != 0) {
         			//check the bottom horizontal
@@ -185,6 +185,36 @@ public class Connect4Position implements InterfacePosition {
 	        	            }
 	        			}
 	        		}
+        		}
+        		//The following code is needed only for when the board size is below 6x6
+        		//delete it if the board will not be smaller.
+        		if (spotColors[i+1][j+2] != 0) {
+        			//check second from top horizontal
+    				if (spotColors[i+2][j] == spotColors[i+2][j+1] &&
+    	                    spotColors[i+2][j] == spotColors[i+2][j+2] &&
+    	                    spotColors[i+2][j] == spotColors[i+2][j+3]) {
+    	                    return spotColors[i+2][j];
+    	            }
+    				//check second from the left vertical
+    				if (spotColors[i+3][j+1] == spotColors[i+2][j+1] &&
+    	                    spotColors[i+3][j+1] == spotColors[i+1][j+1] &&
+    	                    spotColors[i+3][j+1] == spotColors[i][j+1]) {
+    	                    return spotColors[i+3][j+1];
+    	            }
+        		}
+        		if (spotColors[i+2][j+1] != 0) {
+        			//check second from bottom horizontal
+    				if (spotColors[i+1][j] == spotColors[i+1][j+1] &&
+    	                    spotColors[i+1][j] == spotColors[i+1][j+2] &&
+    	                    spotColors[i+1][j] == spotColors[i+1][j+3]) {
+    	                    return spotColors[i+1][j];
+    	            }
+    				//check second from the right vertical
+    				if (spotColors[i+3][j+2] == spotColors[i+2][j+2] &&
+    	                    spotColors[i+3][j+2] == spotColors[i+1][j+2] &&
+    	                    spotColors[i+3][j+2] == spotColors[i][j+2]) {
+    	                    return spotColors[i+3][j+2];
+    	            }
         		}
         	}
         }
