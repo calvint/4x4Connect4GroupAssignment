@@ -1,5 +1,8 @@
 package connect4Minimax4x4;
 
+import connect4Minimax4x4.Connect4SearchInfo;
+import connect4Minimax4x4.Connect4Strategy;
+
 //author: Gary Kalmanovich; rights reserved
 
 public class Connect4Control implements InterfaceControl, ThreadCompleteListener{

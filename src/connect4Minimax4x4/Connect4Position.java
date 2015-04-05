@@ -10,6 +10,7 @@ public class Connect4Position implements InterfacePosition {
     // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
     // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
     // Finally, the left most bit is for the player
+    
 
     private long position = 0;
     private int nC = 0;
@@ -27,19 +28,20 @@ public class Connect4Position implements InterfacePosition {
         nR       = pos.nR();
     }
 
-    public int getColumnChipCount( InterfaceIterator iPos ) { // Number of chips in column iC
+    private int getColumnChipCount( InterfaceIterator iPos ) { // Number of chips in column iC
         return getColumnChipCount( iPos.iC() );
     }
     
-    private int getColumnChipCount( int iC ) { // Number of chips in column iC
-        // fill this in based on:
+    private int getColumnChipCount( int iC ) { // Number of chips in column iC. 
+        // return should be from 0-6.
+
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
         // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
         // Finally, the left most bit is for the player
-    	return (int) ((position & (7L << 3*iC)) >>> (3*iC));
+        return (int) ((position >>> (18 - (iC * 3))) & 7L);
     }
     
-    @Override public int nC() { return nC; }
+    @Override public int nC() { return nC; } 
     @Override public int nR() { return nR; }
 
     @Override
@@ -50,49 +52,67 @@ public class Connect4Position implements InterfacePosition {
     @Override
     public int getColor( InterfaceIterator iPos ) { // 0 if transparent, 1 if red, 2 if yellow
         int  iR_ = iPos.nR()-iPos.iR()-1; // This numbers the rows from the bottom up
-        return getColor( iPos.iC(), iR_, getColumnChipCount(iPos) );
+        return getColor( iPos.iC(), iR_, getColumnChipCount(iPos.iC()) );
     }
 
     private int getColor( int iC, int iR_, int nColumnChipCount ) { // 0 if transparent, 1 if red, 2 if yellow
-        // fill this in based on:
+        //TODO fill this in based on:
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
         // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
         // Finally, the left most bit is for the player
-    	if (iR_ >= nColumnChipCount) {
-    		return 0;
-    	} else {
-	    	int posShift = 21 + (iC * nC) + (4-iR_);
-	        return (int) ((position & (1L << posShift)) >>> posShift) + 1;
-    	}
+        
+        // iR_ should be an index from 0 to 5.
+        // If there are spots filled in the column
+        // equal to the index, then the index spot
+        // is actually empty.
+//        System.out.println("getting color");
+//        System.out.println(iC);
+//        System.out.println(iR_);
+//        System.out.println(nColumnChipCount);
+        if (iR_ >= nColumnChipCount) {
+            return 0;
+        }
+        else {
+            return ((int)((position >>> (62 - ((iC * 6) + iR_))) & 1L)) + 1;
+        }
     }
 
+    public boolean spotReady(InterfaceIterator iPos) {
+        int  iR  = iPos.iR();
+        int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
+        if ( iR_ > getColumnChipCount(iPos) || iR_ < getColumnChipCount(iPos)) { 
+            return false;
+        }
+        return true;
+    }
+    
     @Override
     public void setColor( InterfaceIterator iPos, int color ) { // color is 1 if red, 2 if yellow
         int  iC  = iPos.iC();
         int  iR  = iPos.iR();
         int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
-        if (        iR_ > getColumnChipCount(iPos)) { 
-            System.err.println("Error: This position ("+iC+","+iR+") cannot yet be filled.");
-        } else if ( iR_ < getColumnChipCount(iPos)) { 
-            System.err.println("Error: This position ("+iC+","+iR+") is already filled.");
+        if (        iR_ > getColumnChipCount(iPos)) {
+            System.err.println("Error: This position ("+iC+","+iR_+") cannot yet be filled.");
+        } else if ( iR_ < getColumnChipCount(iPos)) {
+            System.err.println("Error: This position ("+iC+","+iR_+") is already filled.");
         } else {
             // Increment columnSize
-            // Set the color (default is color==1)
-        	
-            //TODO fill this in based on:
-            // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
-            // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
-            // Finally, the left most bit is for the player
-        	int count = getColumnChipCount(iPos);
-        	//zero column bits
-        	position &= ~(7 << (3*iC));
-        	//set new count for that column
-        	position |= ((count + 1) << (3*iC));
-        	//change color slot to correct color
-        	if (color == 2) {
-        		int posShift = 21 + (iC * nC) + (4-iR_);
-    	    	position |= (1L << posShift);
-        	}
+            int shiftAmount = 18 - (iC * 3);
+            
+            int currColSize = (int) ((position >>> shiftAmount) & 7L);
+            long newColSize = (currColSize + 1) & 0x0000000000000007L;
+            
+            long rightHalf = (position << (64-shiftAmount)) >>> (64-shiftAmount);
+            
+            position = ((position >>> shiftAmount)
+                    & 0xFFFFFFFFFFFFFFF8L) | newColSize;
+            
+            position = (position << shiftAmount) | rightHalf;
+            
+            // Set the color (default is color==1) So default bit is 0?
+            int PLAYER_BIT = 1;
+            int posInColorBits = PLAYER_BIT + ((iC * 6) + iR_);
+            position = position | (((long)(color - 1)) << (63-posInColorBits));
         }
     }
 
@@ -101,73 +121,81 @@ public class Connect4Position implements InterfacePosition {
         //      if winner, determine that and return winner, 
         //      else if draw, return 0
         //      else if neither winner nor draw, return -1
-        //TODO implement this one for the individual assignment
-    	//check verticals for win
-    	//for each column
-    	for (int columnIndex =0; columnIndex < nC; columnIndex++) {
-    		//for each piece in that column with at least three pieces above it
-    		int maxHeight = getColumnChipCount(columnIndex);
-    		for (int height = 0; maxHeight - height >= 3; height ++) {
-    			if (getColor(columnIndex, height, maxHeight) == getColor(columnIndex, height + 1, maxHeight) & 
-    					getColor(columnIndex, height, maxHeight) == getColor(columnIndex, height + 2, maxHeight)  &
-    					getColor(columnIndex, height, maxHeight) == getColor(columnIndex, height + 3, maxHeight)) {
-    				int winner = getColor(columnIndex, height, maxHeight);
-//    				System.out.println("The following player has won:" + Integer.toString(winner));
-    				return winner;
-    			}
-    		}
-    	}
-    	//check horizontals
-    	for (int rowIndex =0; rowIndex < nR; rowIndex++) {
-    		int  iR_ = nR()-rowIndex-1; // This numbers the rows from the bottom up
-    		for( int columnIndex = 0; columnIndex + 3 < nC; columnIndex++ ) {
-    			if (getColor(columnIndex, iR_, getColumnChipCount(columnIndex)) != 0) {
-    				if (	getColor(columnIndex, iR_, getColumnChipCount(columnIndex)) == getColor(columnIndex + 1, iR_, getColumnChipCount(columnIndex + 1)) & 
-        					getColor(columnIndex, iR_, getColumnChipCount(columnIndex)) == getColor(columnIndex + 2, iR_, getColumnChipCount(columnIndex + 2)) &
-        					getColor(columnIndex, iR_, getColumnChipCount(columnIndex)) == getColor(columnIndex + 3, iR_, getColumnChipCount(columnIndex + 3))) {
-    					int winner = getColor(columnIndex, iR_, getColumnChipCount(columnIndex));
-//        				System.out.println("The following player has won:" + Integer.toString(winner));
-        				return winner;
-        			}
-    			}
-    		}
-    	}
-    	//check diagonals
-    	
-    	if (getColor(0,0,getColumnChipCount(0)) != 0) {
-	    	if (getColor(0,0,getColumnChipCount(0)) == getColor(1, 1, getColumnChipCount(1)) &
-	    			getColor(0, 0, getColumnChipCount(0)) == getColor(2, 2, getColumnChipCount(2))  &
-					getColor(0, 0, getColumnChipCount(0)) == getColor(3, 3, getColumnChipCount(3))) {
-	    		int winner = getColor(0, 0, getColumnChipCount(0));
-//				System.out.println("The following player has won:" + Integer.toString(winner));
-				return winner;
-	    	}
-    	}
-    	if (getColor(0,3,getColumnChipCount(0)) != 0) {
-	    	if (getColor(0,3,getColumnChipCount(0)) == getColor(1, 2, getColumnChipCount(1)) &
-	    			getColor(0, 3, getColumnChipCount(0)) == getColor(2, 1, getColumnChipCount(2))  &
-					getColor(0, 3, getColumnChipCount(0)) == getColor(3, 0, getColumnChipCount(3))) {
-	    		int winner = getColor(0, 3, getColumnChipCount(0));
-//				System.out.println("The following player has won:" + Integer.toString(winner));
-				return winner;
-	    	}
-    	}
-//    	if ( ((position << 43) >> 43) == 2097152) {
-//    		return 0;
-//    	} 
-    	boolean draw = true;
-    	for (int iR = 0; iR < nR; iR++ ) {
-    		for (int iC = 0; iC < nC; iC++) {
-    			if (getColor(iC, iR, getColumnChipCount(iC)) == 0) {
-    				draw = false;
-    			}
-    		}
-    	}
-    	if (draw == true) {
-    		return 0;
-    	}else {
-    		return -1;
-    	}
+
+        //TODO make this faster, store getColor() calls. Rework diagonal checks.
+        
+        // Hard coded assumption of 4 column, 4 row board.
+        
+        int[] columnChipCounts = new int[nC];
+        for (int iC=0; iC < nC; iC++) {
+            columnChipCounts[iC] = getColumnChipCount(iC);
+        }
+        
+        int[][] spotColors = new int[nC][nR];
+        for (int iC=0; iC < nC; iC++) {
+            for (int iR=0; iR < nR; iR++) {
+                spotColors[iC][iR] = getColor(iC, iR, columnChipCounts[iC]);
+            }
+        }
+        
+        // go through vertical wins
+        for (int iC=0; iC < nC; iC++) {
+            if (columnChipCounts[iC] < 4) continue;
+            for (int iR = columnChipCounts[iC]-1; iR >= 3; iR-- ) {
+                if (spotColors[iC][iR] == 0) continue;
+                if (spotColors[iC][iR] == spotColors[iC][iR-1] &&
+                    spotColors[iC][iR-1] == spotColors[iC][iR-2] &&
+                    spotColors[iC][iR-2] == spotColors[iC][iR-3]) {
+                    return spotColors[iC][iR];
+                }
+            }
+        }
+        
+        // go through horizontal wins
+        for (int iR=0; iR < nR; iR++) {
+            for (int iC = 0; iC <= nC - 4; iC++ ) {
+                if (spotColors[iC][iR] == 0) continue;
+                if (spotColors[iC][iR] == spotColors[iC+1][iR] &&
+                    spotColors[iC+1][iR] == spotColors[iC+2][iR] &&
+                    spotColors[iC+2][iR] == spotColors[iC+3][iR]) {
+                    return spotColors[iC][iR];
+                }
+            }
+        }
+        
+        // check diagonals
+        // hard coded for 4x4 case
+        if (spotColors[0][0] != 0) {
+            if (spotColors[0][0] == spotColors[1][1]
+                && spotColors[1][1] == spotColors[2][2]
+                && spotColors[2][2] == spotColors[3][3]) {
+                return spotColors[0][0];
+            }
+        }
+        if (spotColors[0][3] != 0) {
+            if (spotColors[0][3] == spotColors[1][2]
+                && spotColors[1][2] == spotColors[2][1]
+                && spotColors[2][1] == spotColors[3][0]) {
+                return spotColors[0][3];
+            }
+        }
+        
+        // If we got this far, nobody has won. Therefore if the whole board is filled,
+        // it is a draw.
+        boolean allFilled = true;
+        for (int iC=0; iC < nC; iC++) {
+            if (columnChipCounts[iC] != 4) {
+                allFilled = false;
+                break;
+            }
+        }
+        
+        if (allFilled) {
+            return 0;
+        }
+        else {
+            return -1;
+        }
     }
 
     @Override
@@ -202,6 +230,7 @@ public class Connect4Position implements InterfacePosition {
     @Override
     public int isWinner(InterfaceIterator iPos) {
         // Not yet used (You may want to implement/use this for the group assignment)
+        System.out.println("uh oh");
         return 0/0;
     }
 
@@ -216,16 +245,5 @@ public class Connect4Position implements InterfacePosition {
         // Not used yet
         return 0/0;
     }
-    
-    public String printBoard() {
-    	String result = "";
-    	for (int i = nR - 1; i >= 0; i--) {
-    		for (int j = 0; j < nC; j++) {
-    			result += Integer.toString(getColor(j, i, getColumnChipCount(j)));
-    		}
-    		result += "\n";
-    	}
-    	result += "current player:" + Integer.toString(getPlayer());
-    	return result;
-    }
+
 }

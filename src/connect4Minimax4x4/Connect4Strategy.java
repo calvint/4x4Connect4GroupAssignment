@@ -1,32 +1,56 @@
 package connect4Minimax4x4;
 
+
 //author: Gary Kalmanovich; rights reserved
 
 public class Connect4Strategy implements InterfaceStrategy {
     @Override
-    public void getBestMove(InterfacePosition position, InterfaceSearchInfo context) {
+    public void getBestMove(InterfacePosition position,
+            InterfaceSearchInfo context) {
+        // Note, return information is embedded in context
+
         int player   = position.getPlayer();
         int opponent = 3-player; // There are two players, 1 and 2.
-        for ( InterfaceIterator iPos = new Connect4Iterator(4, 4); iPos.isInBounds(); iPos.increment() ) {
-            InterfacePosition posNew = new Connect4Position(position);
-            if (posNew.getColor(iPos) == 0 & ((iPos.nR()-iPos.iR()-1) == ((Connect4Position) posNew).getColumnChipCount(iPos))) { // This is a free spot
+        
+        for (InterfaceIterator iPos = new Connect4Iterator(4,4); 
+                iPos.isInBounds(); iPos.increment() ) {
+            Connect4Position posNew = new Connect4Position(position);
+            if (posNew.spotReady(iPos)) { // This is a free spot
                 posNew.setColor(iPos, player);
+                
                 int isWin = posNew.isWinner();
-                float score;
-                if        ( isWin ==   player ) { score =  1f;  // Win
-                } else if ( isWin ==        0 ) { score =  0f;  // Draw
-                } else if ( isWin == opponent ) { score = -1f;  // Loss
-                } else { // Game is not over, so check further down the game
+                
+                float score = 0;
+                
+                if (isWin ==  -1) {
                     posNew.setPlayer(opponent);
-                    InterfaceSearchInfo opponentContext = new Connect4SearchInfo();
-                    getBestMove(posNew, opponentContext);
-                    score = -opponentContext.getBestScoreSoFar();
+                    InterfaceSearchInfo nextContext = new Connect4SearchInfo();
+                    getBestMove(posNew,nextContext);
+                    score = -1 * nextContext.getBestScoreSoFar();
                 }
-                if (context.getBestScoreSoFar() <  score ) {
+                else if (isWin > 0) {
+                    if (isWin == player) {
+                        score = 1;
+                    }
+                    else { // isWin == opponent
+                        score = -1;
+                    }
+                }
+                else { // isWin == 0
+                    score = 0;
+                }
+
+                if (score == 1) {
+                    context.setBestMoveSoFar(iPos, score );
+                    break; // end our for loop
+                }
+           
+                if ( score > context.getBestScoreSoFar() ) {
                     context.setBestMoveSoFar(iPos, score );
                 }
-            }
         }
+    }
+     
     }
 
     @Override
