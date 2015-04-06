@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Connect4Strategy implements InterfaceStrategy {
 
-	private Map<Long,Connect4SearchInfo> saved = new HashMap<Long,Connect4SearchInfo>(); 
+	private Map<Long,Connect4SearchInfo> saved = new HashMap<>(); 
 			
 	@Override
     public void getBestMove(InterfacePosition position,
@@ -24,16 +24,14 @@ public class Connect4Strategy implements InterfaceStrategy {
             if (posNew.spotReady(iPos)) { // This is a free spot
                 posNew.setColor(iPos, player);
                 
-                Connect4SearchInfo maybeContext1 = (Connect4SearchInfo) saved.get(posNew.getRawPosition());
                 posNew.setPlayer(opponent);
-                Connect4SearchInfo maybeContext2 = (Connect4SearchInfo) saved.get(posNew.getRawPosition());
-                posNew.setPlayer(player);
-                if (maybeContext1 != null || maybeContext2 != null) {
-                	if (maybeContext2.getBestScoreSoFar() * -1 > context.getBestScoreSoFar()) {
+                Connect4SearchInfo opponentContext = (Connect4SearchInfo) saved.get(posNew.getRawPosition());
+                if (opponentContext != null) { //maybeContext1 != null || maybeContext2 != null
+                	if ( -opponentContext.getBestScoreSoFar() > context.getBestScoreSoFar()) {
 //	                	if (iPos != maybeContext.getBestMoveSoFar()) {
 //	                		System.out.println("AAAAAHH!");
 //	                	}
-                		context.setBestMoveSoFar(iPos, maybeContext2.getBestScoreSoFar()* -1);
+                		context.setBestMoveSoFar(iPos, -opponentContext.getBestScoreSoFar());
                 	}
                 } else {
                 	int isWin = posNew.isWinner();
