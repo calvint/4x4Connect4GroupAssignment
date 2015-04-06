@@ -113,8 +113,6 @@ public class Connect4Position implements InterfacePosition {
         //      if winner, determine that and return winner, 
         //      else if draw, return 0
         //      else if neither winner nor draw, return -1
-
-        //TODO make this faster, store getColor() calls. Rework diagonal checks.
         
         // Hard coded assumption of 4 column, 4 row board.
         
