@@ -1,10 +1,16 @@
 package connect4Minimax4x4;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 //author: Gary Kalmanovich; rights reserved
 
 public class Connect4Strategy implements InterfaceStrategy {
-    @Override
+
+	private Map<Long,Connect4SearchInfo> saved = new HashMap<Long,Connect4SearchInfo>(); 
+			
+	@Override
     public void getBestMove(InterfacePosition position,
             InterfaceSearchInfo context) {
         // Note, return information is embedded in context
@@ -18,39 +24,52 @@ public class Connect4Strategy implements InterfaceStrategy {
             if (posNew.spotReady(iPos)) { // This is a free spot
                 posNew.setColor(iPos, player);
                 
-                int isWin = posNew.isWinner();
-                
-                float score = 0;
-                
-                if (isWin ==  -1) {
-                    posNew.setPlayer(opponent);
-                    InterfaceSearchInfo nextContext = new Connect4SearchInfo();
-                    getBestMove(posNew,nextContext);
-                    score = -1 * nextContext.getBestScoreSoFar();
+                Connect4SearchInfo maybeContext1 = (Connect4SearchInfo) saved.get(posNew.getRawPosition());
+                posNew.setPlayer(opponent);
+                Connect4SearchInfo maybeContext2 = (Connect4SearchInfo) saved.get(posNew.getRawPosition());
+                posNew.setPlayer(player);
+                if (maybeContext1 != null || maybeContext2 != null) {
+                	if (maybeContext2.getBestScoreSoFar() * -1 > context.getBestScoreSoFar()) {
+//	                	if (iPos != maybeContext.getBestMoveSoFar()) {
+//	                		System.out.println("AAAAAHH!");
+//	                	}
+                		context.setBestMoveSoFar(iPos, maybeContext2.getBestScoreSoFar()* -1);
+                	}
+                } else {
+                	int isWin = posNew.isWinner();
+	                
+	                float score = 0;
+	                
+	                if (isWin ==  -1) {
+	                    posNew.setPlayer(opponent);
+	                    InterfaceSearchInfo nextContext = new Connect4SearchInfo();
+	                    getBestMove(posNew,nextContext);
+	                    score = -1 * nextContext.getBestScoreSoFar();
+	                }
+	                else if (isWin > 0) {
+	                    if (isWin == player) {
+	                        score = 1;
+	                    }
+	                    else { // isWin == opponent
+	                        score = -1;
+	                    }
+	                }
+	                else { // isWin == 0
+	                    score = 0;
+	                }
+	
+	                if (score == 1) {
+	                    context.setBestMoveSoFar(iPos, score );
+	                    break; // end our for loop
+	                }
+	            
+	                if ( score > context.getBestScoreSoFar() ) {
+	                    context.setBestMoveSoFar(iPos, score );
+	                }
                 }
-                else if (isWin > 0) {
-                    if (isWin == player) {
-                        score = 1;
-                    }
-                    else { // isWin == opponent
-                        score = -1;
-                    }
-                }
-                else { // isWin == 0
-                    score = 0;
-                }
-
-                if (score == 1) {
-                    context.setBestMoveSoFar(iPos, score );
-                    break; // end our for loop
-                }
-           
-                if ( score > context.getBestScoreSoFar() ) {
-                    context.setBestMoveSoFar(iPos, score );
-                }
+	        }
         }
-    }
-     
+        saved.put(position.getRawPosition(), (Connect4SearchInfo) context);
     }
 
     @Override
