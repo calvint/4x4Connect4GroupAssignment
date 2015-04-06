@@ -1,5 +1,6 @@
 package connect4Minimax4x4;
 
+
 //author: Gary Kalmanovich; rights reserved
 
 public class Connect4Position implements InterfacePosition {
@@ -32,13 +33,14 @@ public class Connect4Position implements InterfacePosition {
         return getColumnChipCount( iPos.iC() );
     }
     
+
     public int getColumnChipCount( int iC ) { // Number of chips in column iC. 
         // return should be from 0-6.
 
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
         // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
         // Finally, the left most bit is for the player
-        return (int) ((position >>> (18 - (iC * 3))) & 7L);
+    	return (int) ((position >>> (3*iC)) & 7L);
     }
     
     @Override public int nC() { return nC; } 
@@ -55,28 +57,6 @@ public class Connect4Position implements InterfacePosition {
         return getColor( iPos.iC(), iR_, getColumnChipCount(iPos.iC()) );
     }
 
-    private int getColor( int iC, int iR_, int nColumnChipCount ) { // 0 if transparent, 1 if red, 2 if yellow
-        //TODO fill this in based on:
-        // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
-        // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
-        // Finally, the left most bit is for the player
-        
-        // iR_ should be an index from 0 to 5.
-        // If there are spots filled in the column
-        // equal to the index, then the index spot
-        // is actually empty.
-//        System.out.println("getting color");
-//        System.out.println(iC);
-//        System.out.println(iR_);
-//        System.out.println(nColumnChipCount);
-        if (iR_ >= nColumnChipCount) {
-            return 0;
-        }
-        else {
-            return ((int)((position >>> (62 - ((iC * 6) + iR_))) & 1L)) + 1;
-        }
-    }
-
     public boolean spotReady(InterfaceIterator iPos) {
         int  iR  = iPos.iR();
         int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
@@ -85,34 +65,46 @@ public class Connect4Position implements InterfacePosition {
         }
         return true;
     }
-    
+    private int getColor( int iC, int iR_, int nColumnChipCount ) { // 0 if transparent, 1 if red, 2 if yellow
+        // fill this in based on:
+        // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
+        // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
+        // Finally, the left most bit is for the player
+    	if (iR_ >= nColumnChipCount) {
+    		return 0;
+    	} else {
+	    	int posShift = 21 + (iC * nC) + (4-iR_);
+	        return (int) ((position >>> posShift) & 1L) + 1;
+    	}
+    }
+
     @Override
     public void setColor( InterfaceIterator iPos, int color ) { // color is 1 if red, 2 if yellow
         int  iC  = iPos.iC();
         int  iR  = iPos.iR();
         int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
-        if (        iR_ > getColumnChipCount(iPos)) {
-            System.err.println("Error: This position ("+iC+","+iR_+") cannot yet be filled.");
-        } else if ( iR_ < getColumnChipCount(iPos)) {
-            System.err.println("Error: This position ("+iC+","+iR_+") is already filled.");
+        if (        iR_ > getColumnChipCount(iPos)) { 
+            System.err.println("Error: This position ("+iC+","+iR+") cannot yet be filled.");
+        } else if ( iR_ < getColumnChipCount(iPos)) { 
+            System.err.println("Error: This position ("+iC+","+iR+") is already filled.");
         } else {
             // Increment columnSize
-            int shiftAmount = 18 - (iC * 3);
-            
-            int currColSize = (int) ((position >>> shiftAmount) & 7L);
-            long newColSize = (currColSize + 1) & 0x0000000000000007L;
-            
-            long rightHalf = (position << (64-shiftAmount)) >>> (64-shiftAmount);
-            
-            position = ((position >>> shiftAmount)
-                    & 0xFFFFFFFFFFFFFFF8L) | newColSize;
-            
-            position = (position << shiftAmount) | rightHalf;
-            
-            // Set the color (default is color==1) So default bit is 0?
-            int PLAYER_BIT = 1;
-            int posInColorBits = PLAYER_BIT + ((iC * 6) + iR_);
-            position = position | (((long)(color - 1)) << (63-posInColorBits));
+            // Set the color (default is color==1)
+        	
+            //TODO fill this in based on:
+            // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
+            // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
+            // Finally, the left most bit is for the player
+        	int count = getColumnChipCount(iPos);
+        	//zero column bits
+        	position &= ~(7 << (3*iC));
+        	//set new count for that column
+        	position |= ((count + 1) << (3*iC));
+        	//change color slot to correct color
+        	if (color == 2) {
+        		int posShift = 21 + (iC * nC) + (4-iR_);
+    	    	position |= (1L << posShift);
+        	}
         }
     }
 
@@ -137,65 +129,109 @@ public class Connect4Position implements InterfacePosition {
                 spotColors[iC][iR] = getColor(iC, iR, columnChipCounts[iC]);
             }
         }
-        
-        // go through vertical wins
-        for (int iC=0; iC < nC; iC++) {
-            if (columnChipCounts[iC] < 4) continue;
-            for (int iR = columnChipCounts[iC]-1; iR >= 3; iR-- ) {
-                if (spotColors[iC][iR] == 0) continue;
-                if (spotColors[iC][iR] == spotColors[iC][iR-1] &&
-                    spotColors[iC][iR-1] == spotColors[iC][iR-2] &&
-                    spotColors[iC][iR-2] == spotColors[iC][iR-3]) {
-                    return spotColors[iC][iR];
-                }
-            }
-        }
-        
-        // go through horizontal wins
-        for (int iR=0; iR < nR; iR++) {
-            for (int iC = 0; iC <= nC - 4; iC++ ) {
-                if (spotColors[iC][iR] == 0) continue;
-                if (spotColors[iC][iR] == spotColors[iC+1][iR] &&
-                    spotColors[iC+1][iR] == spotColors[iC+2][iR] &&
-                    spotColors[iC+2][iR] == spotColors[iC+3][iR]) {
-                    return spotColors[iC][iR];
-                }
-            }
-        }
-        
-        // check diagonals
-        // hard coded for 4x4 case
-        if (spotColors[0][0] != 0) {
-            if (spotColors[0][0] == spotColors[1][1]
-                && spotColors[1][1] == spotColors[2][2]
-                && spotColors[2][2] == spotColors[3][3]) {
-                return spotColors[0][0];
-            }
-        }
-        if (spotColors[0][3] != 0) {
-            if (spotColors[0][3] == spotColors[1][2]
-                && spotColors[1][2] == spotColors[2][1]
-                && spotColors[2][1] == spotColors[3][0]) {
-                return spotColors[0][3];
-            }
+
+		//referencing each 4X4 piece of the board
+        for (int j = 0; j < nR - 3; j++) {
+        	for (int i = 0; i < nC - 3; i++) {
+        		//if the bottom two corners are not empty
+        		if (spotColors[i+3][j] != 0 & spotColors[i][j] != 0) {
+        			//check the bottom horizontal
+        			if (spotColors[i][j] == spotColors[i+1][j] &&
+    	                    spotColors[i][j] == spotColors[i+2][j] &&
+    	                    spotColors[i][j] == spotColors[i+3][j]) {
+    	                    return spotColors[i][j];
+    	            }
+	        		//if the top left is not empty:
+	        		if (spotColors[i][j+3] != 0) {
+	        			//check vertical on left side
+	    				if (spotColors[i][j] == spotColors[i][j+1] &&
+	    	                    spotColors[i][j] == spotColors[i][j+2] &&
+	    	                    spotColors[i][j] == spotColors[i][j+3]) {
+	    	                    return spotColors[i][j];
+	    	            }
+	    				//check the diagonal from top left to bottom right
+	    				if (spotColors[i][j+3] == spotColors[i+1][j+2] &&
+	    	                    spotColors[i][j+3] == spotColors[i+2][j+1] &&
+	    	                    spotColors[i][j+3] == spotColors[i+3][j]) {
+	    	                    return spotColors[i][j+3];
+	    	            }
+	        			//if the top right is not empty
+	        			if (spotColors[i+3][j+3] != 0) {
+	        				//check top horizontal
+	        				if (spotColors[i][j+3] == spotColors[i+1][j+3] &&
+	        	                    spotColors[i][j+3] == spotColors[i+2][j+3] &&
+	        	                    spotColors[i][j+3] == spotColors[i+3][j+3]) {
+	        	                    return spotColors[i][j+3];
+	        	            }
+	        				//check the vertical on the right side
+	        				if (spotColors[i+3][j+3] == spotColors[i+3][j+2] &&
+	        	                    spotColors[i+3][j+3] == spotColors[i+3][j+1] &&
+	        	                    spotColors[i+3][j+3] == spotColors[i+3][j]) {
+	        	                    return spotColors[i+3][j+3];
+	        	            }
+	        				//check the diagonal from the bottom left to the top right
+	        				if (spotColors[i][j] == spotColors[i+1][j+1] &&
+	        	                    spotColors[i][j] == spotColors[i+2][j+2] &&
+	        	                    spotColors[i][j] == spotColors[i+3][j+3]) {
+	        	                    return spotColors[i][j];
+	        	            }
+	        			}
+	        		}
+        		}
+        		//The following code is needed only for when the board size is below 6x6
+        		//delete it if the board will not be smaller.
+        		if (spotColors[i+1][j+2] != 0) {
+        			//check second from top horizontal
+    				if (spotColors[i][j+2] == spotColors[i+1][j+2] &&
+    	                    spotColors[i][j+2] == spotColors[i+2][j+2] &&
+    	                    spotColors[i][j+2] == spotColors[i+3][j+2]) {
+    	                    return spotColors[i][j+2];
+    	            }
+    				//check second from the left vertical
+    				if (spotColors[i+1][j] == spotColors[i+1][j+1] &&
+    	                    spotColors[i+1][j] == spotColors[i+1][j+2] &&
+    	                    spotColors[i+1][j] == spotColors[i+1][j+3]) {
+    	                    return spotColors[i+1][j];
+    	            }
+        		}
+        		if (spotColors[i+2][j+1] != 0) {
+        			//check second from bottom horizontal
+    				if (spotColors[i][j+1] == spotColors[i+1][j+1] &&
+    	                    spotColors[i][j+1] == spotColors[i+2][j+1] &&
+    	                    spotColors[i][j+1] == spotColors[i+3][j+1]) {
+    	                    return spotColors[i][j+1];
+    	            }
+    				//check second from the right vertical
+    				if (spotColors[i+2][j] == spotColors[i+2][j+1] &&
+    	                    spotColors[i+2][j] == spotColors[i+2][j+2] &&
+    	                    spotColors[i+2][j] == spotColors[i+2][j+3]) {
+    	                    return spotColors[i+3][j];
+    	            }
+        		}
+        	}
         }
         
         // If we got this far, nobody has won. Therefore if the whole board is filled,
         // it is a draw.
-        boolean allFilled = true;
-        for (int iC=0; iC < nC; iC++) {
-            if (columnChipCounts[iC] != 4) {
-                allFilled = false;
-                break;
-            }
-        }
-        
-        if (allFilled) {
-            return 0;
-        }
-        else {
-            return -1;
-        }
+    	if ( (position & 2097151L) == 2340) {
+    		return 0;
+    	} else {
+    		return -1;
+    	}
+//        boolean allFilled = true;
+//        for (int iC=0; iC < nC; iC++) {
+//            if (columnChipCounts[iC] != 4) {
+//                allFilled = false;
+//                break;
+//            }
+//        }
+//        
+//        if (allFilled) {
+//            return 0;
+//        }
+//        else {
+//            return -1;
+//        }
     }
 
     @Override
