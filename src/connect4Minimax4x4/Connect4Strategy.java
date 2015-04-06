@@ -28,10 +28,10 @@ public class Connect4Strategy implements InterfaceStrategy {
                 Connect4SearchInfo opponentContext = (Connect4SearchInfo) saved.get(posNew.getRawPosition());
                 if (opponentContext != null) { //maybeContext1 != null || maybeContext2 != null
                 	if ( -opponentContext.getBestScoreSoFar() > context.getBestScoreSoFar()) {
-//	                	if (iPos != maybeContext.getBestMoveSoFar()) {
-//	                		System.out.println("AAAAAHH!");
-//	                	}
-                		context.setBestMoveSoFar(iPos, -opponentContext.getBestScoreSoFar());
+                	    context.setBestMoveSoFar(iPos, -opponentContext.getBestScoreSoFar());
+                		if (-opponentContext.getBestScoreSoFar() == 1) {
+                		    break;
+                		}
                 	}
                 } else {
                 	int isWin = posNew.isWinner();
