@@ -38,7 +38,7 @@ public class Connect4Position implements InterfacePosition {
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
         // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
         // Finally, the left most bit is for the player
-    	return (int) ((position & (7L << 3*iC)) >>> (3*iC));
+    	return (int) ((position >>> (3*iC)) & 7L);
     }
     
     @Override public int nC() { return nC; } 
@@ -72,7 +72,7 @@ public class Connect4Position implements InterfacePosition {
     		return 0;
     	} else {
 	    	int posShift = 21 + (iC * nC) + (4-iR_);
-	        return (int) ((position & (1L << posShift)) >>> posShift) + 1;
+	        return (int) ((position >>> posShift) & 1L) + 1;
     	}
     }
 
