@@ -32,7 +32,7 @@ public class Connect4Position implements InterfacePosition {
         return getColumnChipCount( iPos.iC() );
     }
     
-    private int getColumnChipCount( int iC ) { // Number of chips in column iC. 
+    public int getColumnChipCount( int iC ) { // Number of chips in column iC. 
         // return should be from 0-6.
 
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)

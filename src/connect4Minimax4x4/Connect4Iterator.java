@@ -1,5 +1,6 @@
 package connect4Minimax4x4;
 
+
 //author: Gary Kalmanovich; rights reserved
 
 public class Connect4Iterator implements InterfaceIterator {
@@ -8,14 +9,18 @@ public class Connect4Iterator implements InterfaceIterator {
     private int iterator  = 0;
     private int nC;
     private int nR;
+    private Connect4Position position;
     
-    Connect4Iterator(int nC, int nR) { this.nC = nC; this.nR = nR; } 
-    Connect4Iterator(InterfaceIterator iter) { this.nC = iter.nC(); this.nR = iter.nR(); this.set(iter); } 
+    Connect4Iterator(int nC, int nR) { this.nC = nC; this.nR = nR; 
+                                        this.position = position;} 
+    Connect4Iterator(Connect4Iterator iter) { this.nC = iter.nC(); this.nR = iter.nR();
+                            this.position = iter.getPosition();this.set(iter); } 
     
     @Override public int          iC() { return iterator%nC; }//7
-    @Override public int          iR() { return iterator/nC; }//7
+    @Override public int          iR() { return position.getColumnChipCount(this.iC()); }//7 iterator/nC;
     @Override public int          nC() { return          nC; }//7
     @Override public int          nR() { return          nR; }//6
+              public Connect4Position getPosition() { return position; }
     @Override public void  increment() {       iterator++  ; }
     @Override public void  resetBack() {       iterator = 0; }
     @Override public void set( InterfaceIterator iter ) { iterator = ((Connect4Iterator)iter).iterator; }

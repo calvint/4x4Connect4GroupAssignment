@@ -82,7 +82,7 @@ class Connect4SearchInfo implements InterfaceSearchInfo {
 
     @Override
     public void setBestMoveSoFar(InterfaceIterator newMove, float newScore) {
-        bestMoveSoFar  = new Connect4Iterator(newMove);
+        bestMoveSoFar  = new Connect4Iterator((Connect4Iterator)newMove);
         bestScoreSoFar = newScore;
     }
 
