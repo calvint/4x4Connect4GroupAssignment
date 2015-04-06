@@ -142,39 +142,39 @@ public class Connect4Position implements InterfacePosition {
         for (int j = 0; j < nR - 3; j++) {
         	for (int i = 0; i < nC - 3; i++) {
         		//if the bottom two corners are not empty
-        		if (spotColors[i][j] != 0 & spotColors[i][j+3] != 0) {
+        		if (spotColors[i+3][j] != 0 & spotColors[i][j] != 0) {
         			//check the bottom horizontal
-        			if (spotColors[i][j] == spotColors[i][j+1] &&
-    	                    spotColors[i][j] == spotColors[i][j+2] &&
-    	                    spotColors[i][j] == spotColors[i][j+3]) {
+        			if (spotColors[i][j] == spotColors[i+1][j] &&
+    	                    spotColors[i][j] == spotColors[i+2][j] &&
+    	                    spotColors[i][j] == spotColors[i+3][j]) {
     	                    return spotColors[i][j];
     	            }
 	        		//if the top left is not empty:
-	        		if (spotColors[i+3][j] != 0) {
+	        		if (spotColors[i][j+3] != 0) {
 	        			//check vertical on left side
-	    				if (spotColors[i+3][j] == spotColors[i+2][j] &&
-	    	                    spotColors[i+3][j] == spotColors[i+1][j] &&
-	    	                    spotColors[i+3][j] == spotColors[i][j]) {
-	    	                    return spotColors[i+3][j];
+	    				if (spotColors[i][j] == spotColors[i][j+1] &&
+	    	                    spotColors[i][j] == spotColors[i][j+2] &&
+	    	                    spotColors[i][j] == spotColors[i][j+3]) {
+	    	                    return spotColors[i][j];
 	    	            }
 	    				//check the diagonal from top left to bottom right
-	    				if (spotColors[i+3][j] == spotColors[i+2][j+1] &&
-	    	                    spotColors[i+3][j] == spotColors[i+1][j+2] &&
-	    	                    spotColors[i+3][j] == spotColors[i][j+3]) {
-	    	                    return spotColors[i+3][j];
+	    				if (spotColors[i][j+3] == spotColors[i+1][j+2] &&
+	    	                    spotColors[i][j+3] == spotColors[i+2][j+1] &&
+	    	                    spotColors[i][j+3] == spotColors[i+3][j]) {
+	    	                    return spotColors[i][j+3];
 	    	            }
 	        			//if the top right is not empty
 	        			if (spotColors[i+3][j+3] != 0) {
 	        				//check top horizontal
-	        				if (spotColors[i+3][j] == spotColors[i+3][j+1] &&
-	        	                    spotColors[i+3][j] == spotColors[i+3][j+2] &&
-	        	                    spotColors[i+3][j] == spotColors[i+3][j+3]) {
-	        	                    return spotColors[i+3][j];
+	        				if (spotColors[i][j+3] == spotColors[i+1][j+3] &&
+	        	                    spotColors[i][j+3] == spotColors[i+2][j+3] &&
+	        	                    spotColors[i][j+3] == spotColors[i+3][j+3]) {
+	        	                    return spotColors[i][j+3];
 	        	            }
 	        				//check the vertical on the right side
-	        				if (spotColors[i+3][j+3] == spotColors[i+2][j+3] &&
-	        	                    spotColors[i+3][j+3] == spotColors[i+1][j+3] &&
-	        	                    spotColors[i+3][j+3] == spotColors[i][j+3]) {
+	        				if (spotColors[i+3][j+3] == spotColors[i+3][j+2] &&
+	        	                    spotColors[i+3][j+3] == spotColors[i+3][j+1] &&
+	        	                    spotColors[i+3][j+3] == spotColors[i+3][j]) {
 	        	                    return spotColors[i+3][j+3];
 	        	            }
 	        				//check the diagonal from the bottom left to the top right
@@ -190,30 +190,30 @@ public class Connect4Position implements InterfacePosition {
         		//delete it if the board will not be smaller.
         		if (spotColors[i+1][j+2] != 0) {
         			//check second from top horizontal
-    				if (spotColors[i+2][j] == spotColors[i+2][j+1] &&
-    	                    spotColors[i+2][j] == spotColors[i+2][j+2] &&
-    	                    spotColors[i+2][j] == spotColors[i+2][j+3]) {
-    	                    return spotColors[i+2][j];
+    				if (spotColors[i][j+2] == spotColors[i+1][j+2] &&
+    	                    spotColors[i][j+2] == spotColors[i+2][j+2] &&
+    	                    spotColors[i][j+2] == spotColors[i+3][j+2]) {
+    	                    return spotColors[i][j+2];
     	            }
     				//check second from the left vertical
-    				if (spotColors[i+3][j+1] == spotColors[i+2][j+1] &&
-    	                    spotColors[i+3][j+1] == spotColors[i+1][j+1] &&
-    	                    spotColors[i+3][j+1] == spotColors[i][j+1]) {
-    	                    return spotColors[i+3][j+1];
-    	            }
-        		}
-        		if (spotColors[i+2][j+1] != 0) {
-        			//check second from bottom horizontal
     				if (spotColors[i+1][j] == spotColors[i+1][j+1] &&
     	                    spotColors[i+1][j] == spotColors[i+1][j+2] &&
     	                    spotColors[i+1][j] == spotColors[i+1][j+3]) {
     	                    return spotColors[i+1][j];
     	            }
+        		}
+        		if (spotColors[i+2][j+1] != 0) {
+        			//check second from bottom horizontal
+    				if (spotColors[i][j+1] == spotColors[i+1][j+1] &&
+    	                    spotColors[i][j+1] == spotColors[i+2][j+1] &&
+    	                    spotColors[i][j+1] == spotColors[i+3][j+1]) {
+    	                    return spotColors[i][j+1];
+    	            }
     				//check second from the right vertical
-    				if (spotColors[i+3][j+2] == spotColors[i+2][j+2] &&
-    	                    spotColors[i+3][j+2] == spotColors[i+1][j+2] &&
-    	                    spotColors[i+3][j+2] == spotColors[i][j+2]) {
-    	                    return spotColors[i+3][j+2];
+    				if (spotColors[i+3][j] == spotColors[i+3][j+1] &&
+    	                    spotColors[i+3][j] == spotColors[i+3][j+2] &&
+    	                    spotColors[i+3][j] == spotColors[i+3][j+3]) {
+    	                    return spotColors[i+3][j];
     	            }
         		}
         	}
