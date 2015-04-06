@@ -47,7 +47,7 @@ public class Connect4Control implements InterfaceControl, ThreadCompleteListener
 
     @Override
     public void onMove(int unused1, int unused2, int iColumn, int iRow, int iColor) {
-        InterfaceIterator iter = new Connect4Iterator( view.nC(), view.nR(), position); iter.set(iColumn, iRow);
+        InterfaceIterator iter = new Connect4Iterator( view.nC(), view.nR()); iter.set(iColumn, iRow);
         //System.out.print("Slot: ( "+iRow+", "+iColumn+" ) is set to color: "+iColor+". Was set to: "+position.getColor(iter));
         position.setColor(iter, iColor);
         //System.out.println(". Now: "+position.getColor(iter));

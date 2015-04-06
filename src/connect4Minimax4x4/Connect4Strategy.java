@@ -11,42 +11,44 @@ public class Connect4Strategy implements InterfaceStrategy {
 
         int player   = position.getPlayer();
         int opponent = 3-player; // There are two players, 1 and 2.
-
-        for (InterfaceIterator iPos = new Connect4Iterator(4,4,position);
+        
+        for (InterfaceIterator iPos = new Connect4Iterator(4,4); 
                 iPos.isInBounds(); iPos.increment() ) {
             Connect4Position posNew = new Connect4Position(position);
-            posNew.setColor(iPos, player);
+            if (posNew.spotReady(iPos)) { // This is a free spot
+                posNew.setColor(iPos, player);
                 
-            int isWin = posNew.isWinner();
+                int isWin = posNew.isWinner();
                 
-            float score = 0;
+                float score = 0;
                 
-            if (isWin ==  -1) {
-                posNew.setPlayer(opponent);
-                InterfaceSearchInfo nextContext = new Connect4SearchInfo();
-                getBestMove(posNew,nextContext);
-                score = -1 * nextContext.getBestScoreSoFar();
-            }
-            else if (isWin > 0) {
-                if (isWin == player) {
-                    score = 1;
+                if (isWin ==  -1) {
+                    posNew.setPlayer(opponent);
+                    InterfaceSearchInfo nextContext = new Connect4SearchInfo();
+                    getBestMove(posNew,nextContext);
+                    score = -1 * nextContext.getBestScoreSoFar();
                 }
-                else { // isWin == opponent
-                    score = -1;
+                else if (isWin > 0) {
+                    if (isWin == player) {
+                        score = 1;
+                    }
+                    else { // isWin == opponent
+                        score = -1;
+                    }
                 }
-            }
-            else { // isWin == 0
-                score = 0;
-            }
+                else { // isWin == 0
+                    score = 0;
+                }
 
-            if (score == 1) {
-                context.setBestMoveSoFar(iPos, score );
-                break; // end our for loop
-            }
+                if (score == 1) {
+                    context.setBestMoveSoFar(iPos, score );
+                    break; // end our for loop
+                }
            
-            if ( score > context.getBestScoreSoFar() ) {
-                context.setBestMoveSoFar(iPos, score );
-            }
+                if ( score > context.getBestScoreSoFar() ) {
+                    context.setBestMoveSoFar(iPos, score );
+                }
+        }
     }
      
     }
@@ -80,7 +82,7 @@ class Connect4SearchInfo implements InterfaceSearchInfo {
 
     @Override
     public void setBestMoveSoFar(InterfaceIterator newMove, float newScore) {
-        bestMoveSoFar  = new Connect4Iterator((Connect4Iterator)newMove);
+        bestMoveSoFar  = new Connect4Iterator(newMove);
         bestScoreSoFar = newScore;
     }
 

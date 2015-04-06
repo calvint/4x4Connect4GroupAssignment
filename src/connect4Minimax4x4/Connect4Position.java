@@ -33,14 +33,12 @@ public class Connect4Position implements InterfacePosition {
         return getColumnChipCount( iPos.iC() );
     }
     
-
-    public int getColumnChipCount( int iC ) { // Number of chips in column iC. 
-     // return should be from 0-6.
-
+    private int getColumnChipCount( int iC ) { // Number of chips in column iC
+        // fill this in based on:
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
         // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
         // Finally, the left most bit is for the player
-        return (int) ((position >>> (18 - (iC * 3))) & 7L);
+    	return (int) ((position >>> (3*iC)) & 7L);
     }
     
     @Override public int nC() { return nC; } 
@@ -53,61 +51,58 @@ public class Connect4Position implements InterfacePosition {
 
     @Override
     public int getColor( InterfaceIterator iPos ) { // 0 if transparent, 1 if red, 2 if yellow
-        //int  iR_ = iPos.nR()-iPos.iR()-1; // This numbers the rows from the bottom up
-        return getColor( iPos.iC(), iPos.iR(), getColumnChipCount(iPos.iC()) );
+        int  iR_ = iPos.nR()-iPos.iR()-1; // This numbers the rows from the bottom up
+        return getColor( iPos.iC(), iR_, getColumnChipCount(iPos.iC()) );
     }
 
     public boolean spotReady(InterfaceIterator iPos) {
         int  iR  = iPos.iR();
-        //int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
-        if ( iR == getColumnChipCount(iPos)) return true;
-        else return false;
+        int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
+        if ( iR_ > getColumnChipCount(iPos) || iR_ < getColumnChipCount(iPos)) { 
+            return false;
+        }
+        return true;
     }
-    private int getColor( int iC, int iR, int nColumnChipCount ) { // 0 if transparent, 1 if red, 2 if yellow
-      //TODO fill this in based on:
+    private int getColor( int iC, int iR_, int nColumnChipCount ) { // 0 if transparent, 1 if red, 2 if yellow
+        // fill this in based on:
         // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
         // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
         // Finally, the left most bit is for the player
-        
-        // iR should be an index from 0 to 5.
-        // If there are spots filled in the column
-        // equal to the index, then the index spot
-        // is actually empty.
-        if (iR >= nColumnChipCount) {
-            return 0;
-        }
-        else {
-            return ((int)((position >>> (62 - ((iC * 6) + iR))) & 1L)) + 1;
-        }
+    	if (iR_ >= nColumnChipCount) {
+    		return 0;
+    	} else {
+	    	int posShift = 21 + (iC * nC) + (4-iR_);
+	        return (int) ((position >>> posShift) & 1L) + 1;
+    	}
     }
 
     @Override
     public void setColor( InterfaceIterator iPos, int color ) { // color is 1 if red, 2 if yellow
         int  iC  = iPos.iC();
         int  iR  = iPos.iR();
-        //int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
-        if (        iR > getColumnChipCount(iPos)) { 
+        int  iR_ = iPos.nR()-iR-1; // This numbers the rows from the bottom up
+        if (        iR_ > getColumnChipCount(iPos)) { 
             System.err.println("Error: This position ("+iC+","+iR+") cannot yet be filled.");
-        } else if ( iR < getColumnChipCount(iPos)) { 
+        } else if ( iR_ < getColumnChipCount(iPos)) { 
             System.err.println("Error: This position ("+iC+","+iR+") is already filled.");
         } else {
-         // Increment columnSize
-            int shiftAmount = 18 - (iC * 3);
-            
-            int currColSize = (int) ((position >>> shiftAmount) & 7L);
-            long newColSize = (currColSize + 1) & 0x0000000000000007L;
-            
-            long rightHalf = (position << (64-shiftAmount)) >>> (64-shiftAmount);
-            
-            position = ((position >>> shiftAmount)
-                    & 0xFFFFFFFFFFFFFFF8L) | newColSize;
-            
-            position = (position << shiftAmount) | rightHalf;
-            
-            // Set the color (default is color==1) So default bit is 0?
-            int PLAYER_BIT = 1;
-            int posInColorBits = PLAYER_BIT + ((iC * 6) + iR);
-            position = position | (((long)(color - 1)) << (63-posInColorBits));
+            // Increment columnSize
+            // Set the color (default is color==1)
+        	
+            //TODO fill this in based on:
+            // Rightmost 21=3*7 bits are for storing column sizes. (3 bits accommodates 0..7)
+            // Next, going to the left 42=6*7*1 bits are binary for colors. (Either red or yellow) 
+            // Finally, the left most bit is for the player
+        	int count = getColumnChipCount(iPos);
+        	//zero column bits
+        	position &= ~(7 << (3*iC));
+        	//set new count for that column
+        	position |= ((count + 1) << (3*iC));
+        	//change color slot to correct color
+        	if (color == 2) {
+        		int posShift = 21 + (iC * nC) + (4-iR_);
+    	    	position |= (1L << posShift);
+        	}
         }
     }
 
@@ -116,6 +111,8 @@ public class Connect4Position implements InterfacePosition {
         //      if winner, determine that and return winner, 
         //      else if draw, return 0
         //      else if neither winner nor draw, return -1
+
+        //TODO make this faster, store getColor() calls. Rework diagonal checks.
         
         // Hard coded assumption of 4 column, 4 row board.
         
